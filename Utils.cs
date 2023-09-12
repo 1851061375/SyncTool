@@ -3,13 +3,22 @@ using System;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
+using TD.QLDL.Library.Controls;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
 
 namespace SyncTool
 {
     internal static class Utils
     {
-        internal static Image ResizeImage(Image imgToResize, Size size)
+        internal static string domain = @"https://ql-sdl.hanhchinhcong.net";
+        internal static Image ResizeImage(Image imgToResize)
         {
+            int width = imgToResize.Width > 1200 ? 1200 : imgToResize.Width;
+            int height = imgToResize.Height > 628 ? 628 : imgToResize.Height;
+            Size size = new Size(width, height);
             // Get the image current width
             int sourceWidth = imgToResize.Width;
             // Get the image current height
@@ -45,23 +54,49 @@ namespace SyncTool
             return image;
         }
 
+       
     }
 
     internal static class Logger
     {
-        private static string filePath = "../../../logs.txt";
+        private static string filePath = "../../logs.txt";
         public static void Write(string content)
         {
-            var log = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:s] ") + content;
-            string existingContent = File.ReadAllText(filePath);
-            using (StreamWriter sw = new StreamWriter(filePath, false))
+            
+            string log = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:s] ") + content;
+
+            if (!File.Exists(filePath))
             {
-                sw.WriteLine(log);
-                if (!string.IsNullOrWhiteSpace(existingContent))
+                using (StreamWriter sw = File.CreateText(filePath))
                 {
-                    sw.WriteLine(existingContent);
+                    sw.WriteLine(log);
+                }
+            }
+            else
+            {
+                string existingContent = File.ReadAllText(filePath);
+                using (StreamWriter sw = new StreamWriter(filePath, false))
+                {
+                    sw.WriteLine(log);
+                    if (!string.IsNullOrWhiteSpace(existingContent))
+                    {
+                        sw.WriteLine(existingContent);
+                    }
                 }
             }
         }
+
+        public static List<string> Read()
+        {
+            List<string> lines = new List<string>();
+
+            if (File.Exists(filePath))
+            {
+                lines = File.ReadAllLines(filePath).ToList();
+            }
+            return lines;
+        }
     }
+
+    
 }
