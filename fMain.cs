@@ -98,7 +98,7 @@ namespace SyncToolOld
                     {
                         string path = Utils.domain + _item.AnhDaiDien.Split(',')[0];
                         _item.ResizedImage = GetNewUrlImage(path);
-                        _item.IsProcess = true;
+                        //_item.IsProcess = true;
                         Logger.Write("Updated CSLT item: " + _item.Ten);
 
                         var tuLieuAnhs = context.TuLieuAnhs
@@ -204,7 +204,6 @@ namespace SyncToolOld
         /// <summary>
         /// Add CSLT to Moca
         /// </summary>
-
         internal static async Task<string> CreateAccommodation(string accessToken, Accommodation acco)
         {
             string url = "https://api.example.com/graphql";
@@ -243,6 +242,13 @@ namespace SyncToolOld
                     return null;
                 }
             }
+        }
+
+        internal static Accommodation ConvertToAccommodation(CoSoLuuTru item)
+        {
+            var resut  = new Accommodation();
+
+            return resut;
         }
 
         private async void fMain_Load(object sender, EventArgs e)
@@ -304,7 +310,7 @@ namespace SyncToolOld
             var accessToken = tmp.accessToken;
 
             // Get data resize image
-            var taskGetData = GetCoSoLuuTru(true);
+            var taskGetData = GetCoSoLuuTru();
             await taskGetData;
             var coSoLuuTrus = taskGetData.Result.Where(x => x.ID == 4).ToList();
 
