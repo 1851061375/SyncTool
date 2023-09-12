@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using Newtonsoft.Json;  
 using SyncTool;
 using System;
 using System.Collections.Generic;
@@ -29,12 +29,13 @@ namespace SyncToolOld
         /// <summary>
         /// Get all CSLT
         /// </summary>
-        public async static Task<List<CoSoLuuTru>> GetCoSoLuuTru()
+        public async static Task<List<CoSoLuuTru>> GetCoSoLuuTru(bool? isProcess = null)
         {
             Func<List<CoSoLuuTru>> myfunc = () => {
                 using (var context = new QLDLDbContext())
                 {
-                    var data = context.CoSoLuuTrus.Take(1);
+                    var data = context.CoSoLuuTrus
+                        .Where(x => x.IsProcess == isProcess).Take(1);
                     return data.ToList();
                 }
             };
@@ -97,6 +98,7 @@ namespace SyncToolOld
                     {
                         string path = Utils.domain + _item.AnhDaiDien.Split(',')[0];
                         _item.ResizedImage = GetNewUrlImage(path);
+                        _item.IsProcess = true;
                         Logger.Write("Updated CSLT item: " + _item.Ten);
 
                         var tuLieuAnhs = context.TuLieuAnhs
@@ -168,7 +170,9 @@ namespace SyncToolOld
             var result = task.Result;
             return result;
         }
-
+        /// <summary>
+        /// Login moca return access token
+        /// </summary>
         public static async Task<string> LoginMoca()
         {
             var url = "https://api.kiengiangdiscovery.com/v1/loginWithUserAndPassword";
@@ -197,8 +201,11 @@ namespace SyncToolOld
                 }
             }
         }
+        /// <summary>
+        /// Add CSLT to Moca
+        /// </summary>
 
-        public static async Task<string> CreateAccommodation()
+        internal static async Task<string> CreateAccommodation(string accessToken, Accommodation acco)
         {
             string url = "https://api.example.com/graphql";
 
@@ -216,16 +223,15 @@ namespace SyncToolOld
                                }
                         }
                     }";
-                    var variables = new
-                    {
-                        id = "123456"
-                    };
 
-                    var requestPayload = new{ query, variables };
+                    var requestPayload = new { query, acco };
 
                     var jsonData = JsonConvert.SerializeObject(requestPayload);
 
                     var postData = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                    // Add authorization header
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
                     HttpResponseMessage response = await client.PostAsync(url, postData);
                     response.EnsureSuccessStatusCode();
@@ -296,6 +302,13 @@ namespace SyncToolOld
             var data = taskLogin.Result;
             var tmp = JsonConvert.DeserializeObject<LoginMoca>(data);
             var accessToken = tmp.accessToken;
+
+            // Get data resize image
+            var taskGetData = GetCoSoLuuTru(true);
+            await taskGetData;
+            var coSoLuuTrus = taskGetData.Result.Where(x => x.ID == 4).ToList();
+
+
         }
     }
 }
