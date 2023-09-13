@@ -35,7 +35,9 @@ namespace SyncToolOld
                 using (var context = new QLDLDbContext())
                 {
                     var data = context.CoSoLuuTrus
-                        .Where(x => x.IsProcess == isProcess).Take(1);
+                        .Where(x => x.IsProcess == isProcess).Take(1)
+                        .Includes(new[] { nameof(CoSoLuuTru.DMLoaiCoSo),
+                            nameof(CoSoLuuTru.DMXepHang) });
                     return data.ToList();
                 }
             };
@@ -246,7 +248,15 @@ namespace SyncToolOld
 
         internal static Accommodation ConvertToAccommodation(CoSoLuuTru item)
         {
+            
             var resut  = new Accommodation();
+            resut.type = item.DMLoaiCoSo?.IdMoca + "";
+            resut.name = item.Ten;
+            resut.label = new List<LabelItem>() {
+                new LabelItem() { lang = "vi", value = item.Ten},
+            };
+            resut.description = item.MoTa;
+            resut.stars = item.DMLoaiCoSo?.IdMoca;
 
             return resut;
         }
