@@ -8,52 +8,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using SixLabors.ImageSharp.Processing;
 
 namespace SyncTool
 {
     internal static class Utils
     {
         internal static string domain = @"https://ql-sdl.hanhchinhcong.net";
-        internal static Image ResizeImage(Image imgToResize)
-        {
-            int width = imgToResize.Width > 1200 ? 1200 : imgToResize.Width;
-            int height = imgToResize.Height > 628 ? 628 : imgToResize.Height;
-            Size size = new Size(width, height);
-            // Get the image current width
-            int sourceWidth = imgToResize.Width;
-            // Get the image current height
-            int sourceHeight = imgToResize.Height;
-            float nPercent = 0;
-            float nPercentW = 0;
-            float nPercentH = 0;
-            // Calculate width and height with new desired size
-            nPercentW = ((float)size.Width / (float)sourceWidth);
-            nPercentH = ((float)size.Height / (float)sourceHeight);
-            nPercent = Math.Min(nPercentW, nPercentH);
-            // New Width and Height
-            int destWidth = (int)(sourceWidth * nPercent);
-            int destHeight = (int)(sourceHeight * nPercent);
-            Bitmap b = new Bitmap(destWidth, destHeight);
-            Graphics g = Graphics.FromImage((Image)b);
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            // Draw image with new width and height
-            g.DrawImage(imgToResize, 0, 0, destWidth, destHeight);
-            g.Dispose();
-            return (Image)b;
-        }
 
-        internal static Image GetImageFromUrl(string url)
+        internal static SixLabors.ImageSharp.Image NewResize(string url)
         {
-            WebClient client = new WebClient();
-            byte[] imageData = client.DownloadData(url);
-            Image image;
-            using (MemoryStream ms = new MemoryStream(imageData))
+            
+            using (HttpClient client = new HttpClient())
             {
-                image = Image.FromStream(ms);
+                byte[] imageBytes = client.GetByteArrayAsync(url).Result;
+                var origin = SixLabors.ImageSharp.Image.Load(imageBytes);
+                int newWidth = origin.Width < 1200 ? 1200 : origin.Width;
+                int newHeight = origin.Height < 628 ? 628 : origin.Height;
+                var resize = origin;
+                resize.Mutate(x => x.Resize(newWidth, newHeight));
+                return resize;
             }
-            return image;
         }
-
        
     }
 

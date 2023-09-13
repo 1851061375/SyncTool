@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;  
+﻿using Newtonsoft.Json;
+using SixLabors.ImageSharp;
 using SyncTool;
 using System;
 using System.Collections.Generic;
@@ -77,8 +78,8 @@ namespace SyncToolOld
         /// <returns>new url image</returns>
         public static string GetNewUrlImage(string path)
         {
-            Image img = Utils.GetImageFromUrl(path);
-            Image resize = Utils.ResizeImage(img);
+            //Image img = Utils.GetImageFromUrl(path);
+            SixLabors.ImageSharp.Image resize = Utils.NewResize(path);
             var taskUpload = UploadImage(resize, path);
             taskUpload.Wait();
             var data = taskUpload.Result;
@@ -141,7 +142,7 @@ namespace SyncToolOld
         /// <summary>
         /// Save Image to public forlder
         /// </summary>
-        public async static Task<string> UploadImage(Image image, string path)
+        public async static Task<string> UploadImage(SixLabors.ImageSharp.Image image, string path)
         {
             Func<string> myfunc = () =>
             {
